@@ -38,14 +38,18 @@ def generate_key_token(master_password:str):
 
 def regenerate_key_token(master_password:str, salt:str):
     salt = base64.b64decode(salt)
+
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=12,
-        salt=salt
+        salt=salt,
         iterations=1_200_000
     )
     key = kdf.derive(master_password.encode())
+
+    # Create the token hash that will be sent to the backend for verification
     
+
 
 
 def run():
