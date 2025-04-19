@@ -72,8 +72,10 @@ def run():
 
     # Lets try to regenerate the token again to match it but this time we can use the 
     # get request to see if the user is logged in
-    
-    resq = requests.get("http://127.0.0.1:8000/user/vault/salt/")
+
+    url = "http://127.0.0.1:8000/user/vault/salt/"
+
+    resq = requests.get(url)
 
 
 
