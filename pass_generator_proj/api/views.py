@@ -1,4 +1,4 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, views
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth.models import User
@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 from .models import PasswordVault, SaveAccountsPass, PassGenModel
 from .permissions import CustomIsLoginVaultPerm
+import base64
 
 
 # Create your views here.
@@ -42,7 +43,7 @@ def login_view(request):
                     "refresh_token":str(refresh)
                 },"message":"login successfully"}, status=status.HTTP_200_OK)
 
-            return Response({"message":"User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"message":"Invalid Credentials user not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 
@@ -61,6 +62,11 @@ def logout_view(request):
                 print(refresh_token)
                 token = RefreshToken(refresh_token)
                 token.blacklist()
+                # Also Logout the user from the vault once the logout from the application
+                user_pass_vault = PasswordVault.objects.get(user=request.user)
+                if user_pass_vault.is_logged_in == True:
+                    user_pass_vault.is_logged_in = False
+                    user_pass_vault.save()
                 return Response({"message":"logout successful"}, status=status.HTTP_200_OK)
             except Exception as e:
                 return Response({"message":"bad token"}, status=status.HTTP_400_BAD_REQUEST)
@@ -77,6 +83,18 @@ class PassGenViewSet(ModelViewSet):
         context = super().get_serializer_context()
         context['user'] = self.request.user
         return context
+
+class PassVaultSaltView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            vault = PasswordVault.objects.get(user=request.user)
+        except PasswordVault.DoesNotExist:
+            return Response({"message":"Sorry Invalid salt. Vault not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        salt_baseb4 = base64.b64encode(vault.salt).decode('utf-8')
+        return Response({"salt":salt_baseb4}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -99,8 +117,9 @@ def vault_login(request):
         serialzer = PasswordVaultLoginSerializer(data=request.data)
         if serialzer.is_valid(raise_exception=True):
             vault = PasswordVault.objects.get(user=request.user)
-            master_password = serialzer.validated_data['master_password']
-            if vault.verify_password(master_password):
+            auth_token_master = serialzer.validated_data['auth_token_master']
+            salt = serialzer.validated_data['salt']
+            if vault.auth_token_master == auth_token_master and vault.salt == salt:
                 # set the vault as logged in
                 vault.is_logged_in = True
                

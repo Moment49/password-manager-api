@@ -14,4 +14,5 @@ urlpatterns = [
     path('auth/logout/', views.logout_view, name='logout'),
     path('user/vault/create/', views.create_pass_vault, name='create_pass_vault'),
     path('user/vault/login/', views.vault_login, name='vault_login'),
+    path('user/vault/salt/', views.PassVaultSaltView.as_view(), name='vault_salt')
 ]+router.urls

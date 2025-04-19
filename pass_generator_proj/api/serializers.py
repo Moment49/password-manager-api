@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import PassGenModel, PasswordVault, SaveAccountsPass
-import random
+import base64
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,6 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'username', 'password', 'confirm_password']
@@ -49,7 +50,8 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = PassGenModel
-        fields = ['id', 'pass_length', 'description', 'user', 'created_at']
+        fields = ['id', 'pass_length', 'description','generated_pass', 'user', 'created_at']
+        read_only_fields = ['generated_pass']
 
     def validate(self, attrs):
         if attrs['pass_length'] < 7:
@@ -61,41 +63,54 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
     
     def create(self, validated_data):
         pass_length = validated_data['pass_length']
+        print(pass_length)
         description = validated_data['description']
         # user = self.context['request'].user
         user = self.context.get("user")
-        print(user)
         password_gene = PassGenModel.objects.create(pass_length=pass_length, description=description, user=user)
+        password_gene.generate_password()
         password_gene.save()
         return password_gene
 
  
 
 class PasswordVaultSerializer(serializers.ModelSerializer):
-    master_password = serializers.CharField(write_only=True)
-    hashed_master_password = serializers.CharField(read_only=True)
+    auth_token_master = serializers.CharField(write_only=True)
+    salt = serializers.CharField(write_only=True)
     user = UserSerializer(read_only=True)
 
     class Meta:
         model = PasswordVault
-        fields = ['id', 'user', 'hashed_master_password', 'master_password']
+        fields = ['auth_token_master', 'salt', 'user']
+    
+
+    def to_internal_value(self, data):
+        """This takes in the data sent and converts it to 
+        the internal datatype of the model"""
+        super().to_internal_value(data)
+        data['auth_token_master'] = base64.b64decode(data['auth_token_master'])
+        data['salt'] = base64.b64decode(data['salt'])
+        return data
+    
+    def to_representation(self, instance):
+        return super().to_representation(instance)
     
     def create(self, validated_data):
-        master_password = validated_data['master_password']
+        auth_token_master = validated_data['auth_token_master']
+        salt = validated_data['salt']
         # get the user object from the request context password to the serializer
         user = self.context.get('user')
-        print(user)
         if PasswordVault.objects.filter(user=user).exists():
             raise serializers.ValidationError(f"Vault already exists for the user {user}")
         else:
-            vault = PasswordVault.objects.create(user=user)
-            vault.hash_password(master_password)
+            vault = PasswordVault.objects.create(auth_token_master=auth_token_master, salt=salt, user=user)
             vault.save()
     
         return vault
 
 class PasswordVaultLoginSerializer(serializers.Serializer):
-    master_password = serializers.CharField(write_only=True)
+    auth_token_master = serializers.CharField(write_only=True)
+    salt = serializers.CharField(write_only=True)
 
  
 
