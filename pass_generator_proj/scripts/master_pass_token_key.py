@@ -48,7 +48,16 @@ def regenerate_key_token(master_password:str, salt:str):
     key = kdf.derive(master_password.encode())
 
     # Create the token hash that will be sent to the backend for verification
-    
+    token_hash = hashes.Hash(hashes.SHA256())
+    token_hash.update(key)
+    token_hash = token_hash.finalize()
+
+    # convert the encoded binary data (token and salt) to a base64-encoded data
+    token_hash_base64 = base64.b64encode(token_hash).decode('utf-8')
+    salt_base64 = base64.b64encode(salt).decode('utf-8')
+
+    return key, token_hash_base64, salt_base64
+
 
 
 
