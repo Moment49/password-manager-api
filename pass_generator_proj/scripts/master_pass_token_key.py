@@ -70,6 +70,7 @@ def run():
 
     # Lets try to regenerate the token again to match it but this time we can use the 
     # get request to see if the user is logged in
+    requests.get("http://12")
 
 
 
