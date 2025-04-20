@@ -56,6 +56,8 @@ def regenerate_key_token(master_password:str, salt:str):
     token_hash_base64 = base64.b64encode(token_hash).decode('utf-8')
     salt_base64 = base64.b64encode(salt).decode('utf-8')
 
+    # Test
+
     return key, token_hash_base64, salt_base64
 
 
@@ -71,6 +73,10 @@ def run():
     # Lets try to regenerate the token again to match it but this time we can use the 
     # get request to see if the user is logged in
     requests.get("http://12")
+
+    url = "http://127.0.0.1:8000/user/vault/salt/"
+
+    resq = requests.get(url)
 
 
 
