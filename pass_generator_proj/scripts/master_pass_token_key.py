@@ -72,7 +72,6 @@ def run():
 
     # Lets try to regenerate the token again to match it but this time we can use the 
     # get request to see if the user is logged in
-    requests.get("http://12")
 
     url = "http://127.0.0.1:8000/user/vault/salt/"
 
