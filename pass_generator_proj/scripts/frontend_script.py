@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from api.models import PasswordVault
 import requests
 import secrets
+from cryptography.fernet import Fernet
 
 """This is a script file to simulate the frontend for generating the key, token and salt 
     for the master pasword as well as encrypting and decrypting the data and sending it to the backend
@@ -143,7 +144,8 @@ def run():
                                 merged += digits
                                 for x in range(0, password_len):
                                     generated_password += "".join(secrets.choice(merged))
-
+                            print(f"Password Generated: {generated_password}")
+                            # Encrypt password
                             
                         else:
                             print("Invalid master password. Please try again.")
