@@ -48,8 +48,6 @@ class LogoutSerializer(serializers.Serializer):
 
 class PassGenSerializer(serializers.HyperlinkedModelSerializer):
     user = UserSerializer(read_only=True)
-
-    
     class Meta:
         model = PassGenModel
         fields = ['id', 'pass_length', 'description', 'user', 'created_at', 'encrypted_generated_password']
@@ -70,7 +68,7 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         pass_length = validated_data['pass_length']
         description = validated_data['description']
-        encrypted_password = validated_data.pop('encrypted_generated_password', None)
+        encrypted_generated_password = validated_data.pop('encrypted_generated_password', None)
         user = self.context.get("user")
         
         # Get the user's vault
@@ -81,9 +79,12 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
             description=description, 
             user=user,
             vault=vault,
+            encrypted_generated_password=encrypted_generated_password
 
         )
         
+        password_gene.save()
+        return password_gene.encrypted_generated_password
        
 
 
