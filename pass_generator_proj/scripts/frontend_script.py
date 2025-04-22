@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.contrib.auth.models import User
 from api.models import PasswordVault
 import requests
+import secrets
 
 """This is a script file to simulate the frontend for generating the key, token and salt 
     for the master pasword as well as encrypting and decrypting the data and sending it to the backend
@@ -97,8 +98,6 @@ def run():
                 jwt_token = token['access_token']
                 print(jwt_token)
 
-               
-                
                 # Create the master password vault for the user
                 isVaultLogin = False
                 print("Vault creation and login process check..Background process running")
@@ -126,6 +125,25 @@ def run():
                             isVaultLogin = True
                             islogin = True
                             # TODO: Generate the random password, encrypt it and send to the backend
+                            print("Generate password")
+                            password_len = input("Enter password length: ")
+                            password_desc = input("Enter password description : ")
+                            """Set the characters to be used to generate a random password from the 
+                            secrets module"""
+                            Uppercase_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                            lower_letters = 'abcdefghijklmnopqrstuvwxyz'
+                            special_chars = '!-+@#$%^&*()_><?/|\\";:.'
+                            digits = '0123456789'
+                            merged = ''
+                            generated_password = ''
+                            if password_len:
+                                merged += Uppercase_letters
+                                merged += lower_letters 
+                                merged += special_chars
+                                merged += digits
+                                for x in range(0, password_len):
+                                    generated_password += "".join(secrets.choice(merged))
+
                             
                         else:
                             print("Invalid master password. Please try again.")
