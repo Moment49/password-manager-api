@@ -48,31 +48,44 @@ class LogoutSerializer(serializers.Serializer):
 
 class PassGenSerializer(serializers.HyperlinkedModelSerializer):
     user = UserSerializer(read_only=True)
+
+    
     class Meta:
         model = PassGenModel
-        fields = ['id', 'pass_length', 'description','generated_pass', 'user', 'created_at']
-        read_only_fields = ['generated_pass']
+        fields = ['id', 'pass_length', 'description', 'user', 'created_at', 'encrypted_generated_password']
+        read_only_fields = ['user']
 
     def validate(self, attrs):
-        if attrs['pass_length'] < 7:
+        if attrs['pass_length'] < 10:
             raise serializers.ValidationError('You must select a password length greater than 7')
         if attrs['description'] == '':
             raise serializers.ValidationError('Description for the password generated must not be empty')
-        
         return attrs
+    
+    def to_internal_value(self, data):
+        super().to_internal_value(data)
+        data['encrypted_generated_password'] = base64.b64decode(data['encrypted_generated_password'])
+        return data
     
     def create(self, validated_data):
         pass_length = validated_data['pass_length']
-        print(pass_length)
         description = validated_data['description']
-        # user = self.context['request'].user
+        encrypted_password = validated_data.pop('encrypted_generated_password', None)
         user = self.context.get("user")
-        password_gene = PassGenModel.objects.create(pass_length=pass_length, description=description, user=user)
-        password_gene.generate_password()
-        password_gene.save()
-        return password_gene
+        
+        # Get the user's vault
+        vault = PasswordVault.objects.get(user=user)
+        
+        password_gene = PassGenModel.objects.create(
+            pass_length=pass_length, 
+            description=description, 
+            user=user,
+            vault=vault,
 
- 
+        )
+        
+       
+
 
 class PasswordVaultSerializer(serializers.ModelSerializer):
     auth_token_master = serializers.CharField(write_only=True)
@@ -111,8 +124,16 @@ class PasswordVaultSerializer(serializers.ModelSerializer):
 class PasswordVaultLoginSerializer(serializers.Serializer):
     auth_token_master = serializers.CharField(write_only=True)
     salt = serializers.CharField(write_only=True)
-
- 
-
     
+
+    def to_internal_value(self, data):
+        """This takes in the data sent and converts it to 
+        the internal datatype of the model"""
+        super().to_internal_value(data)
+        data['auth_token_master'] = base64.b64decode(data['auth_token_master'])
+        data['salt'] = base64.b64decode(data['salt'])
+        return data
     
+    def to_representation(self, instance):
+        return super().to_representation(instance)
+
