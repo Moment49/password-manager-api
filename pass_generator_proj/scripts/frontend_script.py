@@ -8,6 +8,7 @@ import requests
 import secrets
 from cryptography.fernet import Fernet
 
+
 """This is a script file to simulate the frontend for generating the key, token and salt 
     for the master pasword as well as encrypting and decrypting the data and sending it to the backend
  """
@@ -125,28 +126,61 @@ def run():
                             print("Vault login successful")
                             isVaultLogin = True
                             islogin = True
-                            # TODO: Generate the random password, encrypt it and send to the backend
-                            print("Generate password")
-                            password_len = input("Enter password length: ")
-                            password_desc = input("Enter password description : ")
-                            """Set the characters to be used to generate a random password from the 
-                            secrets module"""
-                            Uppercase_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                            lower_letters = 'abcdefghijklmnopqrstuvwxyz'
-                            special_chars = '!-+@#$%^&*()_><?/|\\";:.'
-                            digits = '0123456789'
-                            merged = ''
-                            generated_password = ''
-                            if password_len:
-                                merged += Uppercase_letters
-                                merged += lower_letters 
-                                merged += special_chars
-                                merged += digits
-                                for x in range(0, password_len):
-                                    generated_password += "".join(secrets.choice(merged))
-                            print(f"Password Generated: {generated_password}")
-                            # Encrypt password
-                            
+                            # TODO: Select an operation to perform for the password generation CRUD operations
+                            print("Select the operation you want to perform: ")
+                            print("1. Generate password")
+                            print("2. Updated Password")
+                            print("3. Show Password")
+                            print("4. Show all passwords")
+                            print("5. Delete Password")
+
+                            operation = input("Enter the operation you want to perform: ")
+                            if operation == "1":
+                                print("Generate password")
+                                password_len = int(input("Enter password length: "))
+                                password_desc = input("Enter password description : ")
+                                """Set the characters to be used to generate a random password from the 
+                                secrets module"""
+                                Uppercase_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                                lower_letters = 'abcdefghijklmnopqrstuvwxyz'
+                                special_chars = '!-+@#$%^&*()_><?/|\\";:.'
+                                digits = '0123456789'
+                                merged = ''
+                                generated_password = ''
+                                if password_len:
+                                    merged += Uppercase_letters
+                                    merged += lower_letters 
+                                    merged += special_chars
+                                    merged += digits
+                                    for x in range(0, password_len):
+                                        generated_password += "".join(secrets.choice(merged))
+                                print(f"Password Generated: {generated_password}")
+                                # Encrypt password
+                                f = Fernet(key)
+                                encrypted_password = f.encrypt(generated_password.encode('utf-8'))
+                                # Convert to a base64 string
+                                encrypted_password_b64string = base64.b64encode(encrypted_password).decode('utf-8')
+                                print(encrypted_password_b64string)
+                                # Make an api call to the backend to create and save the new password
+                                res = requests.post("http://127.0.0.1:8000/api/vault/generate-password/", 
+                                              json={"pass_length":password_len, "description":password_desc, 
+                                              "encrypted_generated_password":encrypted_password_b64string},
+                                            headers={'Authorization':f'Bearer {jwt_token}'})
+                                
+                                if res.status_code == 201:
+                                    print("Password generated successfully and lets just say its been decrypted and show to the user")
+                                else:
+                                    print("errors")
+                            elif operation == "2":
+                                ...
+                            elif operation == "3":
+                                ...
+                            elif operation == "4":
+                                ...
+                            elif operation == "5":
+                                ...
+
+                          
                         else:
                             print("Invalid master password. Please try again.")
                             master_password = input("Enter the master password for the vault: ")

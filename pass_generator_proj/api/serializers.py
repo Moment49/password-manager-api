@@ -61,14 +61,20 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
         return attrs
     
     def to_internal_value(self, data):
-        super().to_internal_value(data)
+        validated_data = super().to_internal_value(data)
+        encrypted_password_b64 = data.get('encrypted_generated_password')
         data['encrypted_generated_password'] = base64.b64decode(data['encrypted_generated_password'])
-        return data
+        return validated_data
+    
+    # def to_representation(self, instance):
+    #     return super().to_representation(instance)
     
     def create(self, validated_data):
         pass_length = validated_data['pass_length']
         description = validated_data['description']
-        encrypted_generated_password = validated_data.pop('encrypted_generated_password', None)
+        encrypted_generated_password = validated_data.get('encrypted_generated_password')
+        print(encrypted_generated_password)
+        print(pass_length)
         user = self.context.get("user")
         
         # Get the user's vault
@@ -84,7 +90,7 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
         )
         
         password_gene.save()
-        return password_gene.encrypted_generated_password
+        return password_gene
        
 
 
@@ -101,10 +107,10 @@ class PasswordVaultSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         """This takes in the data sent and converts it to 
         the internal datatype of the model"""
-        super().to_internal_value(data)
+        validated_data = super().to_internal_value(data)
         data['auth_token_master'] = base64.b64decode(data['auth_token_master'])
         data['salt'] = base64.b64decode(data['salt'])
-        return data
+        return validated_data
     
     def to_representation(self, instance):
         return super().to_representation(instance)
