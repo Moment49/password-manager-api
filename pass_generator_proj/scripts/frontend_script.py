@@ -132,8 +132,6 @@ def run():
                             print("1. Generate password")
                             print("2. Show all passwords")
                             print("3. Show Password")
-                            print("4. Update password")
-                            print("5. Delete Password")
 
                             operation = input("Enter the operation you want to perform: ")
                             if operation == "1":
@@ -213,12 +211,6 @@ def run():
                                 # Decrypt the password
                                 decrypted_pass = f.decrypt(base64.b64decode(pass_data)).decode('utf-8')
                                 print(f"This is your password:{decrypted_pass}")
-
-                            elif operation == "4":
-                                ...
-                            elif operation == "5":
-                                ...
-
                           
                         else:
                             print("Invalid master password. Please try again.")
