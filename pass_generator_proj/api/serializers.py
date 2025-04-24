@@ -117,8 +117,8 @@ class PasswordVaultSerializer(serializers.ModelSerializer):
         """This takes in the data sent and converts it to 
         the internal datatype of the model"""
         validated_data = super().to_internal_value(data)
-        data['auth_token_master'] = base64.b64decode(data['auth_token_master'])
-        data['salt'] = base64.b64decode(data['salt'])
+        validated_data['auth_token_master'] = base64.b64decode(data['auth_token_master'])
+        validated_data['salt'] = base64.b64decode(data['salt'])
         return validated_data
     
     def to_representation(self, instance):

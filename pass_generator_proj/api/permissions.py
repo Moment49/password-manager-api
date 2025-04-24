@@ -6,7 +6,7 @@ class CustomIsLoginVaultPerm(BasePermission):
 
     def has_permission(self, request, view):
         print("Working perm 2")
-        print(request.user)
+        # print(request.user)
         passvaul_user = PasswordVault.objects.get(user=request.user)
         if passvaul_user.is_logged_in == True:
             return True
@@ -17,7 +17,7 @@ class CustomIsLoginVaultPerm(BasePermission):
     def has_object_permission(self, request, view, obj):
         print("working perm")
         if request.method in SAFE_METHODS:
-            return 
-        print(obj.user)
+            return True
+        
         if obj.user == request.user:
             return True

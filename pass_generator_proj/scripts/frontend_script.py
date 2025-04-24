@@ -3,7 +3,7 @@ import base64
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.contrib.auth.models import User
-from api.models import PasswordVault
+from api.models import PasswordVault, PassGenModel
 import requests
 import secrets
 from cryptography.fernet import Fernet
@@ -35,7 +35,7 @@ def generate_key_token(master_password:str):
     # convert the encoded binary data (token and salt) to a base64-encoded data
     token_hash_base64 = base64.b64encode(token_hash).decode('utf-8')
     salt_base64 = base64.b64encode(salt).decode('utf-8')
-    key = base64.b64encode(key).decode('utf-8')
+    key = base64.urlsafe_b64encode(key).decode('utf-8')
    
     return key, token_hash_base64, salt_base64
 
@@ -60,10 +60,11 @@ def regenerate_key_token(master_password:str, salt:str):
     # convert the encoded binary data (token and salt) to a base64-encoded data
     token_hash_base64 = base64.b64encode(token_hash).decode('utf-8')
     salt_base64 = base64.b64encode(salt).decode('utf-8')
-    key = base64.b64encode(key).decode('utf-8')
+    key = base64.urlsafe_b64encode(key).decode('utf-8')
 
     # Test
     return key, token_hash_base64, salt_base64
+
 
 
 def run():
@@ -129,9 +130,9 @@ def run():
                             # TODO: Select an operation to perform for the password generation CRUD operations
                             print("Select the operation you want to perform: ")
                             print("1. Generate password")
-                            print("2. Updated Password")
+                            print("2. Show all passwords")
                             print("3. Show Password")
-                            print("4. Show all passwords")
+                            print("4. Update password")
                             print("5. Delete Password")
 
                             operation = input("Enter the operation you want to perform: ")
@@ -156,25 +157,63 @@ def run():
                                         generated_password += "".join(secrets.choice(merged))
                                 print(f"Password Generated: {generated_password}")
                                 # Encrypt password
-                                f = Fernet(key)
-                                encrypted_password = f.encrypt(generated_password.encode('utf-8'))
-                                # Convert to a base64 string
-                                encrypted_password_b64string = base64.b64encode(encrypted_password).decode('utf-8')
-                                print(encrypted_password_b64string)
+                                f = Fernet(key.encode())
+                                encrypted = f.encrypt(generated_password.encode())
+                                encrypted_b64 = base64.b64encode(encrypted).decode()
+                                
+                                
+                                # encrypted_password = f.encrypt(generated_password.encode('utf-8'))
+                            
+                                # # Convert to a base64 string
+                                # encrypted_password_b64string = base64.b64encode(encrypted_password).decode('utf-8')
+                                # print(encrypted_password_b64string)
                                 # Make an api call to the backend to create and save the new password
                                 res = requests.post("http://127.0.0.1:8000/api/vault/generate-password/", 
                                               json={"pass_length":password_len, "description":password_desc, 
-                                              "encrypted_generated_password":encrypted_password_b64string},
+                                              "encrypted_generated_password":encrypted_b64},
                                             headers={'Authorization':f'Bearer {jwt_token}'})
                                 
                                 if res.status_code == 201:
                                     print("Password generated successfully and lets just say its been decrypted and show to the user")
-                                else:
-                                    print("errors")
+                                    # Decrypt the password and show user
+                                    data = res.json()
+                                    print(data['encrypted_generated_password'])
+                    
                             elif operation == "2":
-                                ...
+                                res =  requests.get("http://127.0.0.1:8000/api/vault/generate-password/",
+                                              headers={'Authorization':f"Bearer {jwt_token}"})  
+                                data_passwords = res.json()
+                                # Re-derive key using master password and the original salt
+                                key, _, _ = regenerate_key_token(master_password, salt)
+                                fernet = Fernet(key.encode())
+                                for password in data_passwords:
+                                    encrypt_pass = password['encrypted_generated_password']
+                                    encrypted_bytes = base64.b64decode(password)
+                                    decrypted_password = fernet.decrypt(encrypted_bytes).decode('utf-8')
+                                    print(f"Decrypted Password: {decrypted_password}")
+                                    print("-" * 40)
+
                             elif operation == "3":
-                                ...
+                                # Not usually the will get the data from backend vary to see if it exists and the retrieve
+                                # But we will skip that here just show passwords
+                                # Check if the generated password exists just test simulation
+                                id = int(input("Enter the id of password to showcase: "))
+                                pass_gen = PassGenModel.objects.get(id=id)
+                                print(pass_gen)
+                                res = requests.get(f"http://127.0.0.1:8000/api/vault/generate-password/{pass_gen.pk}", 
+                                             headers={'Authorization':f"Bearer {jwt_token}"})
+
+                                print("Decrypt password and show user")
+                                encrypt_pass = res.json()
+                                pass_data = encrypt_pass['encrypted_generated_password']
+                                # Will regenerate the key and use it tp decrypt
+                                key, _, _ = regenerate_key_token(master_password, salt)
+                                f = Fernet(key.encode())  # make sure it's bytes
+                                
+                                # Decrypt the password
+                                decrypted_pass = f.decrypt(base64.b64decode(pass_data)).decode('utf-8')
+                                print(f"This is your password:{decrypted_pass}")
+
                             elif operation == "4":
                                 ...
                             elif operation == "5":
