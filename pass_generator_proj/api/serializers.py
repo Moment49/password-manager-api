@@ -63,8 +63,17 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
     def to_internal_value(self, data):
         validated_data = super().to_internal_value(data)
         encrypted_password_b64 = data.get('encrypted_generated_password')
-        data['encrypted_generated_password'] = base64.b64decode(data['encrypted_generated_password'])
+        if encrypted_password_b64:
+            try:
+                # Decode the base64 string to bytes and add it to validated_data
+                validated_data['encrypted_generated_password'] = base64.b64decode(encrypted_password_b64)
+            except Exception:
+                    raise serializers.ValidationError({'encrypted_generated_password': 'Invalid base64 string.'})
+        else:
+            raise serializers.ValidationError({'encrypted_generated_password': 'This field is required.'})
+
         return validated_data
+     
     
     # def to_representation(self, instance):
     #     return super().to_representation(instance)
