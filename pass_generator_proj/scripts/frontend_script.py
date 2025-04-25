@@ -165,13 +165,13 @@ def run():
                                 # Encrypt password
                                 f = Fernet(key.encode())
                                 encrypted = f.encrypt(generated_password.encode())
-                                encrypted_b64_social_pass = base64.b64encode(encrypted).decode()
-                                print(encrypted_b64_social_pass)
+                                encrypted_b64_pass = base64.b64encode(encrypted).decode()
+                                print(encrypted_b64_pass)
                                 
                                 # # Make an api call to the backend to create and save the new password
                                 res = requests.post("http://127.0.0.1:8000/api/vault/generate-password/", 
                                               json={"pass_length":password_len, "description":password_desc, 
-                                              "encrypted_generated_password":encrypted_b64},
+                                              "encrypted_generated_password":encrypted_b64_pass},
                                             headers={'Authorization':f'Bearer {jwt_token}'})
                                 
                                 if res.status_code == 201:
