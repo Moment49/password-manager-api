@@ -100,6 +100,9 @@ class PassGenSerializer(serializers.HyperlinkedModelSerializer):
         
         password_gene.save()
         return password_gene
+    
+    def update(self, instance, validated_data):
+        ...
        
 
 
