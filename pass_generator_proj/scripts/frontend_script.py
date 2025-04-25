@@ -136,47 +136,51 @@ def run():
 
                             operation = input("Enter the operation you want to perform: ")
                             if operation == "1":
-                                account_name = input("Enter the socail account name: ")
-                                desc = input("Enter the social account description: ")
-                                social_acc_pass = input("Enter the socail account password")
-                                # print("Generate password")
-                                # password_len = int(input("Enter password length: "))
-                                # password_desc = input("Enter password description : ")
-                                # """Set the characters to be used to generate a random password from the 
-                                # secrets module"""
-                                # Uppercase_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                                # lower_letters = 'abcdefghijklmnopqrstuvwxyz'
-                                # special_chars = '!-+@#$%^&*()_><?/|\\";:.'
-                                # digits = '0123456789'
-                                # merged = ''
-                                # generated_password = ''
-                                # if password_len:
-                                #     merged += Uppercase_letters
-                                #     merged += lower_letters 
-                                #     merged += special_chars
-                                #     merged += digits
-                                #     for x in range(0, password_len):
-                                #         generated_password += "".join(secrets.choice(merged))
-                                # print(f"Password Generated: {generated_password}")
+                                # # This is t simulate for the social account password
+                                # account_name = input("Enter the socail account name: ")
+                                # desc = input("Enter the social account description: ")
+                                # social_acc_pass = input("Enter the socail account password")
+                                
+                                # This is for Generate password flow
+                        
+                                print("Generate password")
+                                password_len = int(input("Enter password length: "))
+                                password_desc = input("Enter password description : ")
+                                """Set the characters to be used to generate a random password from the 
+                                secrets module"""
+                                Uppercase_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                                lower_letters = 'abcdefghijklmnopqrstuvwxyz'
+                                special_chars = '!-+@#$%^&*()_><?/|\\";:.'
+                                digits = '0123456789'
+                                merged = ''
+                                generated_password = ''
+                                if password_len:
+                                    merged += Uppercase_letters
+                                    merged += lower_letters 
+                                    merged += special_chars
+                                    merged += digits
+                                    for x in range(0, password_len):
+                                        generated_password += "".join(secrets.choice(merged))
+                                print(f"Password Generated: {generated_password}")
                                 # Encrypt password
                                 f = Fernet(key.encode())
-                                encrypted = f.encrypt(social_acc_pass.encode())
+                                encrypted = f.encrypt(generated_password.encode())
                                 encrypted_b64_social_pass = base64.b64encode(encrypted).decode()
                                 print(encrypted_b64_social_pass)
                                 
                                 # # Make an api call to the backend to create and save the new password
-                                # res = requests.post("http://127.0.0.1:8000/api/vault/generate-password/", 
-                                #               json={"pass_length":password_len, "description":password_desc, 
-                                #               "encrypted_generated_password":encrypted_b64},
-                                #             headers={'Authorization':f'Bearer {jwt_token}'})
+                                res = requests.post("http://127.0.0.1:8000/api/vault/generate-password/", 
+                                              json={"pass_length":password_len, "description":password_desc, 
+                                              "encrypted_generated_password":encrypted_b64},
+                                            headers={'Authorization':f'Bearer {jwt_token}'})
                                 
-                                # if res.status_code == 201:
-                                #     print("Password generated successfully and lets just say its been decrypted and show to the user")
-                                #     # Decrypt the password and show user
-                                #     data = res.json()
-                                #     print(data['encrypted_generated_password'])
-                                #     key, _, _ = regenerate_key_token(master_password, salt)
-                                #     f = Fernet(key.encode())
+                                if res.status_code == 201:
+                                    print("Password generated successfully and lets just say its been decrypted and show to the user")
+                                    # Decrypt the password and show user
+                                    data = res.json()
+                                    print(data['encrypted_generated_password'])
+                                    key, _, _ = regenerate_key_token(master_password, salt)
+                                    f = Fernet(key.encode())
                     
                             elif operation == "2":
                                 res =  requests.get("http://127.0.0.1:8000/api/vault/generate-password/",
