@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 
 router.register(r"vault/generate-password", views.PassGenViewSet, basename='generate-password')
-# router.register(r"vault/saved-accounts", views.SavedAccountsViewSet, basename='saved-accounts')
+router.register(r"vault/social-account-password", views.SocialAccountViewSet, basename='social-account-password')
 
 urlpatterns = [
     path('auth/register/', views.RegisterView.as_view(), name='register'),

@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from api.serializers import (RegisterSerializer, LoginSerializer, LogoutSerializer,
-                             PasswordVaultSerializer,PassGenSerializer, PasswordVaultLoginSerializer)
+                             PasswordVaultSerializer,PassGenSerializer, SaveAccountsSerializers, 
+                             PasswordVaultLoginSerializer)
 from django.contrib.auth import authenticate,login
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -83,6 +84,21 @@ class PassGenViewSet(ModelViewSet):
         context = super().get_serializer_context()
         context['user'] = self.request.user
         return context
+
+class SocialAccountViewSet(ModelViewSet):
+    """This is it the View for the social accounts that
+        can be added by the user
+    """
+    serializer_class = SaveAccountsSerializers
+    queryset = SaveAccountsPass.objects.all()
+    permission_classes = [IsAuthenticated, CustomIsLoginVaultPerm]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
+    
+
 
 class PassVaultSaltView(views.APIView):
     permission_classes = [IsAuthenticated]
