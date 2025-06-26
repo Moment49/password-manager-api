@@ -126,6 +126,7 @@ A Python script (`scripts/frontend_script.py`) is provided to simulate all front
 ---
 
 ## Project Structure
+password-manager-api/ │ ├── pass_generator_proj/ │ ├── api/ │ │ ├── models.py # All database models (Vault, Passwords, Accounts) │ │ ├── serializers.py # DRF serializers (handles base64 encoding/decoding) │ │ ├── views.py # API views and endpoints │ │ ├── permissions.py # Custom permission classes │ │ ├── apps.py │ │ └── ... │ ├── pass_generator_proj/ │ │ └── urls.py # Project URL routing │ └── ... ├── scripts/ │ └── frontend_script.py # Simulates frontend cryptography and API usage ├── requirements.txt ├── README.md └── ...
 
 ---
 
