@@ -169,6 +169,10 @@ Documentation and examples
 Frontend clients (web, mobile)
 Automated tests
 
+License
+This repository follows the MIT License
+
+
 Acknowledgements
 Django
 Django REST Framework
