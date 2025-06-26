@@ -131,8 +131,9 @@ def run():
                             print("Select the operation you want to perform: ")
                             print("1. Generate password")
                             print("2. Show all passwords")
-                            print("3. Show Password")
-                            print("4. Update Password")
+                            print("3. Show a Password")
+                            print("4. Update a Password")
+                           
 
                             operation = input("Enter the operation you want to perform: ")
                             if operation == "1":
